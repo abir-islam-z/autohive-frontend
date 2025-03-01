@@ -61,23 +61,28 @@ export default function DashboardLayout() {
           style={{ height: "calc(100% - 60px)" }}
         >
           <ul>
-            {links?.map((link) => (
-              <li key={link.path} className="mb-2">
-                <Link to={link.path}>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start",
-                      location.pathname === link.path && "bg-gray-200",
-                      !sidebarOpen && "justify-center p-2"
-                    )}
-                  >
-                    {link.icon}
-                    {sidebarOpen && <span className="ml-2">{link.label}</span>}
-                  </Button>
-                </Link>
-              </li>
-            ))}
+            {links?.map(
+              (link) =>
+                link?.label && (
+                  <li key={link.path} className="mb-2">
+                    <Link to={"/dashboard/" + link.path}>
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start",
+                          location.pathname === link.path && "bg-gray-200",
+                          !sidebarOpen && "justify-center p-2"
+                        )}
+                      >
+                        {link.icon}
+                        {sidebarOpen && (
+                          <span className="ml-2">{link.label}</span>
+                        )}
+                      </Button>
+                    </Link>
+                  </li>
+                )
+            )}
           </ul>
 
           {user && (
@@ -107,7 +112,7 @@ export default function DashboardLayout() {
             </Button>
           </div>
         </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+        <main className="flex-1 overflow-x-hidden overflow-y-scroll bg-gray-100 no-scrollbar">
           <div className="container mx-auto px-6 py-8">
             <Outlet />
           </div>

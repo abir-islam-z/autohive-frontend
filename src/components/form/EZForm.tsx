@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, shapeError } from "@/lib/utils";
 import { ReactNode } from "react";
 import {
   FieldValues,
@@ -47,9 +47,8 @@ export const EZForm = <T extends FieldValues>({
     try {
       await onSubmit(data);
       await methods.reset();
-    } catch (error: any) {
-      console.log(error);
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(shapeError(error));
     }
   };
 

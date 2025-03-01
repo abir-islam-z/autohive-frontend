@@ -22,7 +22,7 @@ const baseQuery = fetchBaseQuery({
     const token = (getState() as RootState).auth.token;
 
     if (token) {
-      headers.set("authorization", `${token}`);
+      headers.set("authorization", `Bearer ${token}`);
     }
 
     return headers;
@@ -46,20 +46,20 @@ const baseQueryWithRefreshToken: BaseQueryFn<
     //* Send Refresh
     console.log("Sending refresh token");
 
-    const res = await fetch(baseApiUrl + "/refresh-token", {
+    const res = await fetch(baseApiUrl + "/auth/refresh-token", {
       method: "POST",
       credentials: "include",
     });
 
     const data = await res.json();
 
-    if (data?.data?.accessToken) {
+    if (data?.data?.token) {
       const user = (api.getState() as RootState).auth.user;
 
       api.dispatch(
         setUser({
           user,
-          token: data.data.accessToken,
+          token: data.data.token,
         })
       );
 

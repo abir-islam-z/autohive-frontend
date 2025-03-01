@@ -1,59 +1,76 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import { EZForm } from "@/components/form/EZForm";
+import EZInput from "@/components/form/EZInput";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { shapeError } from "@/lib/utils";
+import { useChangePasswordMutation } from "@/redux/features/auth/authApi";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const changePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(6),
+    newPassword: z.string().min(6),
+    confirmPassword: z.string().min(6),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type TChangePasswordSchema = z.infer<typeof changePasswordSchema>;
 
 export default function ChangePassword() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const defaultValues = {
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  };
 
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Implement password change logic here
-    console.log("Password change attempted");
+  const [changePassword] = useChangePasswordMutation();
+
+  const handleChangePassword = async (data: TChangePasswordSchema) => {
+    const id = toast.loading("Changing password");
+    try {
+      await changePassword({
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      }).unwrap();
+      toast.success("Password changed successfully", { id, duration: 2000 });
+    } catch (error) {
+      throw shapeError(error);
+    }
   };
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Change Password</h2>
-      <form onSubmit={handleChangePassword}>
+      <EZForm
+        onSubmit={handleChangePassword}
+        resolver={zodResolver(changePasswordSchema)}
+        defaultValues={defaultValues}
+      >
         <div className="mb-4">
-          <Label htmlFor="currentPassword">Current Password</Label>
-          <Input
+          <EZInput
+            label="Current Password"
             type="password"
-            id="currentPassword"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            required
+            name="oldPassword"
           />
         </div>
         <div className="mb-4">
-          <Label htmlFor="newPassword">New Password</Label>
-          <Input
-            type="password"
-            id="newPassword"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
+          <EZInput label="New Password" type="password" name="newPassword" />
         </div>
         <div className="mb-4">
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <Input
+          <EZInput
+            label="Confirm New Password"
             type="password"
-            id="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
+            name="confirmPassword"
           />
         </div>
         <Button type="submit">Change Password</Button>
-      </form>
+      </EZForm>
     </div>
   );
 }

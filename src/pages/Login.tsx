@@ -1,21 +1,14 @@
 import EZButton from "@/components/form/EZButton";
 import { EZForm } from "@/components/form/EZForm";
 import EZInput from "@/components/form/EZInput";
-import { shapeError, verifyToken } from "@/lib/utils";
+import { verifyToken } from "@/lib/utils";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { setUser, TUser } from "@/redux/features/auth/authSlice";
 import { useAppDispatch } from "@/redux/hooks";
+import { loginSchema, TLoginSchema } from "@/schema/login.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { z } from "zod";
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-type TLoginSchema = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -40,7 +33,8 @@ export default function Login() {
 
       navigate(`/dashboard`);
     } catch (err) {
-      toast.error(shapeError(err), { id: toastId, duration: 2000 });
+      toast.dismiss(toastId);
+      throw err;
     }
   };
 

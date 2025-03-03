@@ -8,10 +8,16 @@ export default function EZButton({ children }: { children: string }) {
   const { formState } = useFormContext();
   return (
     <Button
-      className="w-full"
-      disabled={!formState.isValid || formState.isSubmitting}
+      className="w-full mt-3"
+      disabled={
+        !formState.isValid || formState.isSubmitting || !formState.isDirty
+      }
     >
-      {formState.isSubmitting ? <Loader2Icon /> : children}
+      {formState.isSubmitting ? (
+        <Loader2Icon className="animate-spin" />
+      ) : (
+        children
+      )}
     </Button>
   );
 }

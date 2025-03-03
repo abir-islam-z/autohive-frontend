@@ -3,7 +3,8 @@
 import { EZForm } from "@/components/form/EZForm";
 import EZInput from "@/components/form/EZInput";
 import { Button } from "@/components/ui/button";
-import { shapeError } from "@/lib/utils";
+
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useChangePasswordMutation } from "@/redux/features/auth/authApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -40,7 +41,7 @@ export default function ChangePassword() {
       }).unwrap();
       toast.success("Password changed successfully", { id, duration: 2000 });
     } catch (error) {
-      throw shapeError(error);
+      throw getErrorMessage(error);
     }
   };
 

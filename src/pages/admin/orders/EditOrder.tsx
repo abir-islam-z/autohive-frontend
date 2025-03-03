@@ -19,19 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { badgeColor, cn, formatDate, shapeError } from "@/lib/utils";
+import { badgeColor, cn, formatDate } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import {
   useGetOrderByIdQuery,
   useUpdateOrderMutation,
 } from "@/redux/features/order/orderApi";
-import { OrderStatus } from "@/types/order.type";
+import { ORDERS_PATH } from "@/routes/admin.route";
+import { ORDER_STATUSES, OrderStatus } from "@/types/order.type";
 import { format } from "date-fns"; // Add this import for date formatting
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-// Order status options
-const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered"];
+
 
 const isOptionDisabled = (status: string, currentStatus: string) => {
   switch (status) {
@@ -82,9 +83,9 @@ export default function EditOrder() {
         id: toastId,
         duration: 2000,
       });
-      navigate("/dashboard/manage-orders");
+      navigate(ORDERS_PATH);
     } catch (error) {
-      toast.error(shapeError(error), {
+      toast.error(getErrorMessage(error), {
         id: toastId,
         duration: 2000,
       });
@@ -154,7 +155,7 @@ export default function EditOrder() {
               <h3 className="text-lg font-medium mb-2">Order Details</h3>
               <p>
                 <span className="font-medium">Car:</span>{" "}
-                {order?.data?.car.brand} {order?.data?.car.model}
+                {order?.data?.carSnapshot.brand} {order?.data?.carSnapshot.model}
               </p>
               <p>
                 <span className="font-medium">Quantity:</span>{" "}
@@ -226,7 +227,7 @@ export default function EditOrder() {
         <CardFooter className="flex justify-between">
           <Button
             variant="outline"
-            onClick={() => navigate("/dashboard/manage-orders")}
+            onClick={() => navigate(ORDERS_PATH)}
           >
             Cancel
           </Button>

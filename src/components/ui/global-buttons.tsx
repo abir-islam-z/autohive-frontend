@@ -1,4 +1,5 @@
 import { Pencil, Plus, Trash } from "lucide-react";
+import { ConfirmAlert } from "../Alert";
 import { Button } from "./button";
 
 interface GlobalButtonProps {
@@ -34,13 +35,12 @@ export function AddButton({ onClick, className }: GlobalButtonProps) {
 
 export function DeleteButton({ onClick, className }: GlobalButtonProps) {
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      onClick={onClick}
-      className={className}
-    >
-      <Trash className="h-4 w-4" />
-    </Button>
+    <>
+      <ConfirmAlert action={onClick}>
+        <Button variant="outline" size="icon" className={className}>
+          <Trash className="h-4 w-4" />
+        </Button>
+      </ConfirmAlert>
+    </>
   );
 }

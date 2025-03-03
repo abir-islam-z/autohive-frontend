@@ -1,39 +1,26 @@
-import PrivateRoute from "@/layout/PrivateRoute";
 import ChangePassword from "@/pages/user/ChangePassword";
 import ManageProfile from "@/pages/user/ManageProfile";
-import ViewOrders from "@/pages/user/ViewOrders";
+import ViewOrders from "@/pages/user/orders/ViewOrders";
 import { SidebarLink } from "@/types/sidebar.type";
 import { FileText, Key, User } from "lucide-react";
 
 export const userLinks: SidebarLink[] = [
   {
-    path: "/dashboard/my-orders",
-    label: "My Orders",
+    path: "orders",
+    label: "Track My Orders",
     icon: <FileText className="mr-2 h-4 w-4" />,
-    element: (
-      <PrivateRoute redirectPath="/login">
-        <ViewOrders />
-      </PrivateRoute>
-    ),
+    element: <ViewOrders />,
   },
   {
-    path: "/dashboard/profile",
+    path: "profile",
     label: "Manage Profile",
     icon: <User className="mr-2 h-4 w-4" />,
-    element: (
-      <PrivateRoute redirectPath="/login">
-        <ManageProfile />
-      </PrivateRoute>
-    ),
+    element: <ManageProfile />,
   },
   {
-    path: "/dashboard/change-password",
+    path: "change-password",
     label: "Change Password",
     icon: <Key className="mr-2 h-4 w-4" />,
-    element: (
-      <PrivateRoute redirectPath="/login">
-        <ChangePassword />
-      </PrivateRoute>
-    ),
+    element: <ChangePassword />,
   },
 ];

@@ -1,20 +1,24 @@
 // ["pending", "processing", "shipped", "delivered"];
+
+import { CAR_CATEGORY } from "@/lib/const";
+
+// Order status options
+export const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered"];
+
 export interface IPayment {
-  _id: string;
+  id: string;
   transactionStatus: string;
+  bank_status: string;
+  sp_code: string;
+  sp_message: string;
+  method: string;
+  date_time: string;
 }
 
 export interface IUser {
   _id: string;
   name: string;
   email: string;
-}
-
-export interface ICar {
-  _id: string;
-  brand: string;
-  model: string;
-  id: string;
 }
 
 export type OrderStatus =
@@ -29,7 +33,8 @@ export interface IOrder {
   orderId: string;
   phone: string;
   email: string;
-  car: ICar;
+  car: string;
+  unitPrice: number;
   quantity: number;
   totalPrice: number;
   currentStatus: OrderStatus;
@@ -38,9 +43,21 @@ export interface IOrder {
   payment: IPayment;
   isDeleted: boolean;
   deliveryDate: string;
+  processedAt: Date;
+  shippedAt: Date;
+  deliveredAt: Date;
   createdAt: string;
-  updatedAt: string;
-  __v: number;
+  updatedAt: Date;
+  carSnapshot: {
+    brand: string;
+    model: string;
+    year: number;
+    price: number;
+    category: keyof typeof CAR_CATEGORY;
+    description: string;
+    image: string;
+    currency: string;
+  };
 }
 
 export interface ICreateOrderData {

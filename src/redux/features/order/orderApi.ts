@@ -9,7 +9,6 @@ const orderApi = baseApi.injectEndpoints({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
-          console.log(args);
           for (const [key, value] of Object.entries(args)) {
             if (value) {
               if (Array.isArray(value)) {
@@ -62,6 +61,37 @@ const orderApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Order"],
     }),
+    getUserOrders: builder.query({
+      query: (args) => {
+        const params = new URLSearchParams();
+        if (args) {
+          for (const [key, value] of Object.entries(args)) {
+            if (value) {
+              if (Array.isArray(value)) {
+                value.forEach((val) => {
+                  params.append(key, val);
+                });
+              } else {
+                params.append(key, value as string);
+              }
+            }
+          }
+        }
+        // get user
+        return {
+          url: "orders/user",
+          method: "GET",
+          params,
+        };
+      },
+      providesTags: ["Order"],
+      transformResponse: (response: TResponseRedux<IOrder[]>) => {
+        return {
+          data: response.data,
+          meta: response.meta,
+        };
+      },
+    }),
   }),
 });
 
@@ -71,4 +101,5 @@ export const {
   useCreateOrderMutation,
   useUpdateOrderMutation,
   useDeleteOrderMutation,
+  useGetUserOrdersQuery,
 } = orderApi;

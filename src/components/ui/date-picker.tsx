@@ -37,6 +37,7 @@ export function DatePicker({ date, onSelect, isDisabled }: DatePickerProps) {
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
+          showOutsideDays={false}
           selected={date}
           onSelect={onSelect}
           initialFocus

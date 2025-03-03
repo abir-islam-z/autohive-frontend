@@ -7,61 +7,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function shapeError(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
-  } else if (typeof error === "string") {
-    return error;
-  } else if (
-    typeof error === "object" &&
-    error !== null &&
-    "data" in error &&
-    typeof error.data === "string"
-  ) {
-    return error.data;
-  } else if (
-    typeof error === "object" &&
-    error !== null &&
-    "data" in error &&
-    typeof error.data === "object" &&
-    error.data !== null &&
-    "message" in error.data &&
-    typeof error.data.message === "string"
-  ) {
-    return error.data.message;
-  } else {
-    return "An unknown error occurred";
-  }
+export function formatBytes(
+  bytes: number,
+  opts: {
+    decimals?: number;
+    sizeType?: "accurate" | "normal";
+  } = {}
+) {
+  const { decimals = 0, sizeType = "normal" } = opts;
+
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const accurateSizes = ["Bytes", "KiB", "MiB", "GiB", "TiB"];
+  if (bytes === 0) return "0 Byte";
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return `${(bytes / Math.pow(1024, i)).toFixed(decimals)} ${
+    sizeType === "accurate" ? accurateSizes[i] ?? "Bytes" : sizes[i] ?? "Bytes"
+  }`;
 }
-
-/* type TRoute = {
-  path: string;
-  element: React.ReactNode;
-}; */
-/* export function generateRoutes(items: SidebarLink[]) {
-  const routes = items.reduce((acc: TRoute[], item) => {
-    // const path = item.path.split("/")[2];
-
-    let currentItem = {} as TRoute;
-    if (item.path) {
-      acc.push({
-        path: item.path,
-        element: item.element,
-      });
-    }
-
-    if (item.children) {
-      const childrenRoutes = generateRoutes(item.children);
-      acc.push(...childrenRoutes);
-    }
-
-    console.log(acc);
-    return acc; // Return the accumulator for the next iteration
-  }, []);
-
-  return routes;
-} */
-
 export const verifyToken = (token: string) => {
   return jwtDecode(token);
 };
@@ -82,9 +44,15 @@ export function formatDate(dateString: string): string {
 }
 
 export const badgeColor = {
-  pending: "bg-yellow-500 text-yellow-900",
-  processing: "bg-blue-500 text-blue-900",
-  shipped: "bg-gray-500 text-gray-900",
-  delivered: "bg-green-500 text-green-900",
-  cancelled: "bg-red-500 text-red-900",
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200 capitalize",
+  processing: "bg-blue-50 text-blue-700 border-blue-200 capitalize",
+  shipped: "bg-gray-50 text-gray-700 border-gray-200 capitalize",
+  delivered: "bg-green-50 text-green-700 border-green-200 capitalize",
+  cancelled: "bg-red-50 text-red-700 border-red-200 capitalize",
+  /*  active: "bg-green-50 text-green-700 border-green-200 capitalize w-16",
+  inactive: "bg-red-50 text-red-700 border-red-200 capitalize w-16",
+  success: "bg-green-50 text-green-700 border-green-200 capitalize w-16",
+  error: "bg-red-50 text-red-700 border-red-200 capitalize w-16",
+  warning: "bg-yellow-50 text-yellow-700 border-yellow-200 capitalize w-16",
+  info: "bg-blue-50 text-blue-700 border-blue-200 capitalize w-16", */
 };

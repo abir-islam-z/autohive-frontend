@@ -1,10 +1,16 @@
+
+
 export enum CarCategory {
   Sedan = "Sedan",
   SUV = "SUV",
   Truck = "Truck",
   Coupe = "Coupe",
   Convertible = "Convertible",
+  Sports = "Sports",
+  Luxury = "Luxury",
+  Electric = "Electric",
 }
+
 
 export interface CarProduct {
   id: number;

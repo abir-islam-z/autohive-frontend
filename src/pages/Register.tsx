@@ -1,7 +1,7 @@
 import EZButton from "@/components/form/EZButton";
 import { EZForm } from "@/components/form/EZForm";
 import EZInput from "@/components/form/EZInput";
-import { shapeError } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useRegisterMutation } from "@/redux/features/auth/authApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
@@ -36,7 +36,7 @@ export default function Register() {
       // Handle successful registration (e.g., redirect to login)
       toast.success("Registered Successfully", { id, duration: 2000 });
     } catch (error) {
-      toast.error(shapeError(error), { id, duration: 2000 });
+      toast.error(getErrorMessage(error), { id, duration: 2000 });
     }
   };
 

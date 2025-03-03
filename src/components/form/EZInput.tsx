@@ -6,29 +6,40 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { InputHTMLAttributes } from "react";
 
 type TInputProps = {
-  type: string;
+  type: InputHTMLAttributes<HTMLInputElement>["type"];
   name: string;
   label?: string;
   disabled?: boolean;
 };
 
 const EZInput = ({ type, name, label, disabled }: TInputProps) => {
+  const handleNegativeValueForNumber = (value: number | string) => {
+    if (type === "number") {
+      return Number(value) < 0 ? 0 : value;
+    } else return value;
+  };
+
   return (
     <FormField
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>
-            {label || name.charAt(0).toUpperCase() + name.slice(1)}
-          </FormLabel>
+          <FormLabel className="capitalize">{label || name}</FormLabel>
           <FormControl>
             <Input
               type={type}
               {...field}
-              className="mt-2"
+              value={handleNegativeValueForNumber(field.value)}
+              className={`mt-2`}
               disabled={disabled}
+              onWheel={(e) => {
+                if (type === "number") {
+                  e.currentTarget.blur();
+                }
+              }}
             />
           </FormControl>
           <FormMessage />

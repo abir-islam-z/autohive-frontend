@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { shapeError } from "@/lib/utils";
+
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import {
   BaseQueryApi,
   BaseQueryFn,
@@ -37,10 +38,10 @@ const baseQueryWithRefreshToken: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
 
   if (result?.error?.status === 404) {
-    toast.error(shapeError(result.error));
+    toast.error(getErrorMessage(result.error));
   }
   if (result?.error?.status === 403) {
-    toast.error(shapeError(result.error));
+    toast.error(getErrorMessage(result.error));
   }
   if (result?.error?.status === 401) {
     //* Send Refresh

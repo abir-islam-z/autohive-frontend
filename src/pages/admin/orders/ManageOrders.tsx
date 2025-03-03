@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DataTable } from "@/components/tables/DataTable";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { EditButton } from "@/components/ui/global-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/select";
 import { badgeColor, cn, formatDate } from "@/lib/utils";
 import { useGetOrdersQuery } from "@/redux/features/order/orderApi";
+import { ORDERS_PATH } from "@/routes/admin.route";
 import { IOrder, OrderStatus } from "@/types/order.type";
 import { ColumnDef } from "@tanstack/react-table";
-import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDebounce } from "use-debounce";
 
 // Convert simple strings to objects with value and label
 const STATUS_OPTIONS = [
@@ -28,8 +29,6 @@ const STATUS_OPTIONS = [
   { value: "delivered", label: "Delivered" },
   { value: "cancelled", label: "Cancelled" },
 ];
-
-
 
 // Create columns definition for Tanstack Table matching your IOrder interface
 const createColumns = (
@@ -80,13 +79,7 @@ const createColumns = (
     id: "actions",
     header: "Actions",
     cell: ({ row }) => (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onEditOrder(row.original._id)}
-      >
-        Edit
-      </Button>
+      <EditButton onClick={() => onEditOrder(row.original._id)} />
     ),
   },
 ];
@@ -98,6 +91,8 @@ export default function ManageOrders() {
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("search") || ""
   );
+  const [searchValue] = useDebounce(searchTerm, 300);
+
   const [statusFilter, setStatusFilter] = useState(
     searchParams.get("status") || "All"
   );
@@ -110,7 +105,7 @@ export default function ManageOrders() {
     isLoading,
     isError,
   } = useGetOrdersQuery({
-    search: searchTerm,
+    search: searchValue,
     status: statusFilter !== "All" ? statusFilter : undefined,
     page,
     limit: 10,
@@ -124,13 +119,13 @@ export default function ManageOrders() {
     setSearchParams(params);
   }, [searchTerm, statusFilter, page, setSearchParams]);
 
-  const handleSearchChange = debounce((value: string) => {
+  const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     setPage(1);
-  }, 400);
+  };
 
   const handleEditOrder = (orderId: string) => {
-    navigate(`/dashboard/edit-order/${orderId}`);
+    navigate(ORDERS_PATH + `/${orderId}`);
   };
 
   if (isLoading) {

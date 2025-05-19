@@ -13,9 +13,10 @@ type TInputProps = {
   name: string;
   label?: string;
   disabled?: boolean;
+  placeholder?: string;
 };
 
-const EZInput = ({ type, name, label, disabled }: TInputProps) => {
+const EZInput = ({ type, name, label, disabled, placeholder }: TInputProps) => {
   const handleNegativeValueForNumber = (value: number | string) => {
     if (type === "number") {
       return Number(value) < 0 ? 0 : value;
@@ -40,6 +41,7 @@ const EZInput = ({ type, name, label, disabled }: TInputProps) => {
                   e.currentTarget.blur();
                 }
               }}
+              placeholder={placeholder}
             />
           </FormControl>
           <FormMessage />

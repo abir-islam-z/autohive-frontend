@@ -1,14 +1,21 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
-export default function EZButton({ children }: { children: string }) {
+export default function EZButton({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
   const { formState } = useFormContext();
   return (
     <Button
-      className="w-full mt-3"
+      className={cn("mt-3 cursor-pointer", className)}
       disabled={
         !formState.isValid || formState.isSubmitting || !formState.isDirty
       }

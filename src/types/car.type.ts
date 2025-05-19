@@ -1,14 +1,31 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export type TCar = {
-  _id: string;
-  brand: string;
-  model: string;
-  price: number;
-  quantity: number;
-  category?: string;
-  [key: string]: any;
+import { CURRENCY_SYMBOL } from "@/lib/const";
+
+export type TBrandsModels = {
+  brands: string[];
+  models: string[];
 };
 
+export type TCar = {
+  readonly _id: string;
+  brand: string;
+  model: string;
+  year: number;
+  price: number;
+  category: string;
+  description: string;
+  currency: keyof typeof CURRENCY_SYMBOL;
+  quantity: number;
+  inStock: boolean;
+  color: string;
+  engine: string;
+  transmission: string;
+  fuelType: string;
+  mileage: number;
+  horsepower: number;
+  driveType: string;
+  images: string[];
+  createdAt: string;
+};
 export const CAR_BRANDS = [
   "All",
   "Toyota",
@@ -18,7 +35,8 @@ export const CAR_BRANDS = [
   "Mercedes",
   "Audi",
 ];
-export const CAR_CATEGORIES = [
+
+export const CAR_CATEGORIES: TCarCategory[] = [
   "All",
   "SUV",
   "Sedan",
@@ -27,6 +45,15 @@ export const CAR_CATEGORIES = [
   "Luxury",
   "Electric",
 ];
+
+export type TCarCategory =
+  | "All"
+  | "SUV"
+  | "Sedan"
+  | "Truck"
+  | "Sports"
+  | "Luxury"
+  | "Electric";
 
 export const CATEGORY_OPTIONS = [
   { label: "Sedan", value: "Sedan" },

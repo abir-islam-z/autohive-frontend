@@ -2,9 +2,9 @@ import AdminRoute from "@/layout/AdminRoute";
 import ManageUsers from "@/pages/admin/ManageUsers";
 import EditOrder from "@/pages/admin/orders/EditOrder";
 import ManageOrders from "@/pages/admin/orders/ManageOrders";
-import AddProduct from "@/pages/admin/product/AddProduct";
-import EditProduct from "@/pages/admin/product/EditProduct";
-import ManageProducts from "@/pages/admin/product/ManageProducts";
+import AddProduct from "@/pages/admin/products/AddProduct";
+import EditProduct from "@/pages/admin/products/EditProduct";
+import ManageProducts from "@/pages/admin/products/ManageProducts";
 import { SidebarLink } from "@/types/sidebar.type";
 import { FileText, ShoppingCart, Users } from "lucide-react";
 

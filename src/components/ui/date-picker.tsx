@@ -15,10 +15,10 @@ import { cn } from "@/lib/utils";
 interface DatePickerProps {
   date?: Date;
   onSelect: (date: Date | undefined) => void;
-  isDisabled?: boolean;
+  dateToDisable?: Date[];
 }
 
-export function DatePicker({ date, onSelect, isDisabled }: DatePickerProps) {
+export function DatePicker({ date, onSelect, dateToDisable }: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -28,7 +28,6 @@ export function DatePicker({ date, onSelect, isDisabled }: DatePickerProps) {
             "w-[240px] justify-start text-left font-normal",
             !date && "text-muted-foreground"
           )}
-          disabled={isDisabled}
         >
           <CalendarIcon />
           {date ? format(date, "PPP") : <span>Pick a date</span>}
@@ -38,6 +37,7 @@ export function DatePicker({ date, onSelect, isDisabled }: DatePickerProps) {
         <Calendar
           mode="single"
           showOutsideDays={false}
+          disabled={[{ before: new Date(), ...dateToDisable }]}
           selected={date}
           onSelect={onSelect}
           initialFocus

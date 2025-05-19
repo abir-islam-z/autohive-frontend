@@ -3,7 +3,12 @@
 import { CAR_CATEGORY } from "@/lib/const";
 
 // Order status options
-export const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered"];
+export const ORDER_STATUSES = [
+  "pending",
+  "processing",
+  "shipped",
+  "delivered",
+] as TOrderStatus[];
 
 export interface IPayment {
   id: string;
@@ -21,12 +26,7 @@ export interface IUser {
   email: string;
 }
 
-export type OrderStatus =
-  | "pending"
-  | "processing"
-  | "shipped"
-  | "delivered"
-  | "cancelled";
+export type TOrderStatus = "pending" | "processing" | "shipped" | "delivered";
 
 export interface IOrder {
   _id: string;
@@ -37,7 +37,7 @@ export interface IOrder {
   unitPrice: number;
   quantity: number;
   totalPrice: number;
-  currentStatus: OrderStatus;
+  currentStatus: TOrderStatus;
   user: IUser;
   shippingAddress: string;
   payment: IPayment;

@@ -26,5 +26,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "src/utils/getMenuItems.ts", "src/lib/getErrorMessage.ts"]
 }

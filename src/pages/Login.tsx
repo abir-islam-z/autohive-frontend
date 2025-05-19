@@ -3,9 +3,10 @@ import { EZForm } from "@/components/form/EZForm";
 import EZInput from "@/components/form/EZInput";
 import { verifyToken } from "@/lib/utils";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
-import { setUser, TUser } from "@/redux/features/auth/authSlice";
+import { setUser} from "@/redux/features/auth/authSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { loginSchema, TLoginSchema } from "@/schema/login.schema";
+import { TUserToken } from "@/types/user.type";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,7 +28,7 @@ export default function Login() {
       };
       const res = await login(userInfo).unwrap();
 
-      const user = verifyToken(res.data.token) as TUser;
+      const user = verifyToken(res.data.token) as TUserToken;
       dispatch(setUser({ user: user, token: res.data.token }));
       toast.success("Logged in", { id: toastId, duration: 2000 });
 
@@ -52,7 +53,7 @@ export default function Login() {
         <div className="mb-6">
           <EZInput name="password" label="Password" type="password" />
         </div>
-        <EZButton>Login</EZButton>
+        <EZButton className="w-full">Login</EZButton>
       </EZForm>
       <p className="text-center">
         Don't have an account?{" "}

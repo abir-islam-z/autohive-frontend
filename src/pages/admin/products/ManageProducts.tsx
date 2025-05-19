@@ -1,3 +1,6 @@
+import { EmptyState } from "@/components/common/EmptyState";
+import DashboardPageWrapper from "@/components/DashboardPageWrapper";
+import ErrorState from "@/components/errors/ErrorState";
 import { DataTable } from "@/components/tables/DataTable";
 import {
   Accordion,
@@ -29,11 +32,12 @@ import {
 import { ADD_PRODUCT_PATH, PRODUCTS_PATH } from "@/routes/admin.route";
 import { CAR_BRANDS, CAR_CATEGORIES, TCar } from "@/types/car.type";
 import { ColumnDef } from "@tanstack/react-table";
-import { FilterX, Search } from "lucide-react";
+import { FilterX, Package, RefreshCw, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
-
+import ProductsTableSkeleton from "../../../components/skeletons/ProductsTableSkeleton";
 
 export default function ManageProducts() {
   const navigate = useNavigate();
@@ -78,8 +82,9 @@ export default function ManageProducts() {
     data: productsData,
     isLoading,
     isError,
+    refetch,
   } = useGetCarsQuery(queryParams);
-  const [deleteProduct] = useDeleteCarMutation();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteCarMutation();
 
   // Update URL params when filters change
   useEffect(() => {
@@ -112,9 +117,12 @@ export default function ManageProducts() {
   };
 
   const handleDeleteProduct = async (productId: string) => {
+    const toastId = toast.loading("Deleting product...");
     try {
       await deleteProduct(productId).unwrap();
+      toast.success("Product deleted successfully", { id: toastId });
     } catch (error) {
+      toast.error("Failed to delete product", { id: toastId });
       console.error("Failed to delete the product:", error);
     }
   };
@@ -187,23 +195,18 @@ export default function ManageProducts() {
               handleEditProduct(row.original._id);
             }}
           />
-          <DeleteButton onClick={() => handleDeleteProduct(row.original._id)} />
+          <DeleteButton
+            onClick={() => handleDeleteProduct(row.original._id)}
+            isDisabled={isDeleting}
+          />
         </div>
       ),
     },
   ];
 
-  if (isLoading) return <div>Loading products...</div>;
-  if (isError)
-    return <div>Error loading products. Please try again later.</div>;
-
-  return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Manage Products</h2>
-        <AddButton onClick={handleAddProduct} />
-      </div>
-
+  // The filters section - extracted for better readability
+  const filtersSection = (
+    <>
       {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -215,7 +218,7 @@ export default function ManageProducts() {
         />
       </div>
 
-      {/* Filters section */}
+      {/* Filters accordion */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="filters">
           <AccordionTrigger className="text-lg font-medium">
@@ -224,13 +227,13 @@ export default function ManageProducts() {
           <AccordionContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
               {/* Brand filter */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="brand">Brand</Label>
                 <Select
                   value={selectedBrand}
                   onValueChange={(value) => {
                     setSelectedBrand(value);
-                    setPage(1); // Reset to first page on filter change
+                    setPage(1);
                   }}
                 >
                   <SelectTrigger id="brand">
@@ -247,13 +250,13 @@ export default function ManageProducts() {
               </div>
 
               {/* Category filter */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="category">Category</Label>
                 <Select
                   value={selectedCategory}
                   onValueChange={(value) => {
                     setSelectedCategory(value);
-                    setPage(1); // Reset to first page on filter change
+                    setPage(1);
                   }}
                 >
                   <SelectTrigger id="category">
@@ -270,13 +273,13 @@ export default function ManageProducts() {
               </div>
 
               {/* Availability filter */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="availability">Availability</Label>
                 <Select
                   value={availability}
                   onValueChange={(value) => {
                     setAvailability(value);
-                    setPage(1); // Reset to first page on filter change
+                    setPage(1);
                   }}
                 >
                   <SelectTrigger id="availability">
@@ -307,7 +310,7 @@ export default function ManageProducts() {
                 step={1000}
                 onValueChange={(values) => {
                   setPriceRange(values);
-                  setPage(1); // Reset to first page on filter change
+                  setPage(1);
                 }}
                 className="w-full"
               />
@@ -325,24 +328,81 @@ export default function ManageProducts() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+    </>
+  );
 
-      {/* Results count */}
-      <div className="text-sm text-muted-foreground mb-2">
-        Found {productsData?.meta?.total || 0} product
-        {productsData?.meta?.total !== 1 ? "s" : ""}
-      </div>
+  // Determine content based on loading/error state
+  let content;
 
-      <DataTable
-        columns={columns}
-        data={productsData?.data || []}
-        serverPagination={{
-          pageCount: productsData?.meta?.totalPage || 1,
-          currentPage: page,
-        }}
-        onPaginationChange={(pagination) => {
-          setPage(pagination.pageIndex + 1);
-        }}
+  if (isLoading) {
+    content = <ProductsTableSkeleton />;
+  } else if (isError) {
+    content = (
+      <ErrorState
+        title="Failed to Load Products"
+        message="We couldn't retrieve the product list. Please try again."
+        onRetry={() => refetch()}
       />
-    </div>
+    );
+  } else if (productsData?.data && productsData.data.length > 0) {
+    content = (
+      <>
+        {filtersSection}
+
+        {/* Results count */}
+        <div className="text-sm text-muted-foreground mb-2">
+          Found {productsData?.meta?.total || 0} product
+          {productsData?.meta?.total !== 1 ? "s" : ""}
+        </div>
+
+        {/* Products table */}
+        <DataTable
+          columns={columns}
+          data={productsData.data}
+          serverPagination={{
+            pageCount: productsData?.meta?.totalPage || 1,
+            currentPage: page,
+          }}
+          onPaginationChange={(pagination) => {
+            setPage(pagination.pageIndex + 1);
+          }}
+        />
+      </>
+    );
+  } else {
+    // Empty state
+    content = (
+      <>
+        {filtersSection}
+
+        <EmptyState
+          icon={Package}
+          title="No Products Found"
+          description={
+            searchTerm ||
+            selectedBrand !== "All" ||
+            selectedCategory !== "All" ||
+            priceRange[0] > 0 ||
+            priceRange[1] < 100000 ||
+            availability !== "All"
+              ? "Try adjusting your search or filter criteria."
+              : "No products have been added yet."
+          }
+          actionLabel="Refresh"
+          actionIcon={RefreshCw}
+          onAction={() => refetch()}
+        />
+      </>
+    );
+  }
+
+  return (
+    <DashboardPageWrapper pageHeading="Manage Products">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex-1" />
+        <AddButton onClick={handleAddProduct} />
+      </div>
+      {content}
+    </DashboardPageWrapper>
   );
 }

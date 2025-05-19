@@ -1,88 +1,174 @@
-import { Link } from "react-router-dom"
-import { Facebook, Twitter, Instagram } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/const";
+import {
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
+  Twitter,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-800 text-white">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-8 xl:col-span-1">
-            <Link to="/" className="text-2xl font-bold">
-              Car Ecommerce
+    <footer className="bg-background text-secondary-foreground">
+      <div className="container py-10 px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Logo and Description */}
+          <div className="space-y-4">
+            <Link to="/" className="flex items-center gap-2">
+              <img className="h-20" src="/logo.png" alt="AutoHive" />
             </Link>
-            <p className="text-gray-400 text-sm">
-              Find your dream car online. Quality vehicles, great prices, and excellent customer service.
+            <p className="text-secondary-foreground/75 text-sm">
+              {SITE_DESCRIPTION}
             </p>
-            <div className="flex space-x-6">
-              <a href="#" className="text-gray-400 hover:text-white">
-                <span className="sr-only">Facebook</span>
-                <Facebook className="h-6 w-6" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <span className="sr-only">Twitter</span>
-                <Twitter className="h-6 w-6" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <span className="sr-only">Instagram</span>
-                <Instagram className="h-6 w-6" />
-              </a>
+            <div className="flex space-x-4">
+              <Button
+                variant="secondary"
+                size="icon"
+                asChild
+                className="rounded-full hover:bg-primary hover:text-primary-foreground"
+              >
+                <a href="#" aria-label="Facebook">
+                  <Facebook className="h-5 w-5" />
+                </a>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                className="rounded-full hover:bg-primary hover:text-primary-foreground"
+              >
+                <a href="#" aria-label="Twitter">
+                  <Twitter className="h-5 w-5" />
+                </a>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                className="rounded-full hover:bg-primary hover:text-primary-foreground"
+              >
+                <a href="#" aria-label="Instagram">
+                  <Instagram className="h-5 w-5" />
+                </a>
+              </Button>
             </div>
           </div>
-          <div className="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
-            <div className="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Quick Links</h3>
-                <ul className="mt-4 space-y-4">
-                  <li>
-                    <Link to="/" className="text-base text-gray-300 hover:text-white">
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/products" className="text-base text-gray-300 hover:text-white">
-                      Products
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/about" className="text-base text-gray-300 hover:text-white">
-                      About
-                    </Link>
-                  </li>
-                </ul>
+
+          {/* Quick Links */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-primary">
+              Quick Links
+            </h3>
+            <Separator className="my-2" />
+            <nav className="flex flex-col space-y-3">
+              <Link to="/" className="text-sm group flex items-center">
+                <span className="hover:text-primary transition-colors flex items-center">
+                  <span className="opacity-0 transition-all group-hover:opacity-100 group-hover:mr-1">
+                    ›
+                  </span>{" "}
+                  Home
+                </span>
+              </Link>
+              <Link to="/products" className="text-sm group flex items-center">
+                <span className="hover:text-primary transition-colors flex items-center">
+                  <span className="opacity-0 transition-all group-hover:opacity-100 group-hover:mr-1">
+                    ›
+                  </span>{" "}
+                  Products
+                </span>
+              </Link>
+              <Link to="/about" className="text-sm group flex items-center">
+                <span className="hover:text-primary transition-colors flex items-center">
+                  <span className="opacity-0 transition-all group-hover:opacity-100 group-hover:mr-1">
+                    ›
+                  </span>{" "}
+                  About
+                </span>
+              </Link>
+            </nav>
+          </div>
+
+          {/* Support */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-primary">
+              Support
+            </h3>
+            <Separator className="my-2" />
+            <nav className="flex flex-col space-y-3">
+              <a href="#" className="text-sm group flex items-center">
+                <span className="hover:text-primary transition-colors flex items-center">
+                  <span className="opacity-0 transition-all group-hover:opacity-100 group-hover:mr-1">
+                    ›
+                  </span>{" "}
+                  Contact Us
+                </span>
+              </a>
+              <a href="#" className="text-sm group flex items-center">
+                <span className="hover:text-primary transition-colors flex items-center">
+                  <span className="opacity-0 transition-all group-hover:opacity-100 group-hover:mr-1">
+                    ›
+                  </span>{" "}
+                  FAQ
+                </span>
+              </a>
+              <a href="#" className="text-sm group flex items-center">
+                <span className="hover:text-primary transition-colors flex items-center">
+                  <span className="opacity-0 transition-all group-hover:opacity-100 group-hover:mr-1">
+                    ›
+                  </span>{" "}
+                  Terms of Service
+                </span>
+              </a>
+              <a href="#" className="text-sm group flex items-center">
+                <span className="hover:text-primary transition-colors flex items-center">
+                  <span className="opacity-0 transition-all group-hover:opacity-100 group-hover:mr-1">
+                    ›
+                  </span>{" "}
+                  Privacy Policy
+                </span>
+              </a>
+            </nav>
+          </div>
+
+          {/* Contact Info */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-primary">
+              Contact Us
+            </h3>
+            <Separator className="my-2" />
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3 text-sm group">
+                <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <span className="group-hover:text-primary transition-colors">
+                  123 Car Street, Automobile City, AC 12345
+                </span>
               </div>
-              <div className="mt-12 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Support</h3>
-                <ul className="mt-4 space-y-4">
-                  <li>
-                    <a href="#" className="text-base text-gray-300 hover:text-white">
-                      Contact Us
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="text-base text-gray-300 hover:text-white">
-                      FAQ
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="text-base text-gray-300 hover:text-white">
-                      Terms of Service
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="text-base text-gray-300 hover:text-white">
-                      Privacy Policy
-                    </a>
-                  </li>
-                </ul>
+              <div className="flex items-center space-x-3 text-sm group">
+                <Phone className="h-5 w-5 text-primary shrink-0" />
+                <span className="group-hover:text-primary transition-colors">
+                  (123) 456-7890
+                </span>
+              </div>
+              <div className="flex items-center space-x-3 text-sm group">
+                <Mail className="h-5 w-5 text-primary shrink-0" />
+                <span className="group-hover:text-primary transition-colors">
+                  support@{SITE_TITLE.toLowerCase().replace(" ", "")}.com
+                </span>
               </div>
             </div>
           </div>
         </div>
-        <div className="mt-12 border-t border-gray-700 pt-8">
-          <p className="text-base text-gray-400 xl:text-center">&copy; 2024 Car Ecommerce. All rights reserved.</p>
+
+        <Separator className="my-8" />
+
+        <div className="text-center text-sm text-muted-foreground">
+          &copy; {new Date().getFullYear()} {SITE_TITLE}. All rights reserved.
         </div>
       </div>
     </footer>
-  )
+  );
 }
-

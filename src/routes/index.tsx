@@ -1,9 +1,9 @@
 import About from "@/pages/About";
 import Checkout from "@/pages/Checkout";
-import Home from "@/pages/Home";
+import Home from "@/pages/home/Home";
 import Login from "@/pages/Login";
 import ProductDetails from "@/pages/ProductDetails";
-import Products from "@/pages/Products";
+import Products from "@/pages/products/Products";
 import Register from "@/pages/Register";
 import { createBrowserRouter } from "react-router-dom";
 

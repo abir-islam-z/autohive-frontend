@@ -1,6 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import DashboardPageWrapper from "@/components/DashboardPageWrapper";
+import  ErrorState  from "@/components/errors/ErrorState";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,66 +21,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { badgeColor, cn, formatDate } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { badgeColor, cn, formatDate } from "@/lib/utils";
 import {
   useGetOrderByIdQuery,
   useUpdateOrderMutation,
 } from "@/redux/features/order/orderApi";
 import { ORDERS_PATH } from "@/routes/admin.route";
-import { ORDER_STATUSES, OrderStatus } from "@/types/order.type";
-import { format } from "date-fns"; // Add this import for date formatting
+import { ORDER_STATUSES, TOrderStatus } from "@/types/order.type";
+import { format } from "date-fns";
+import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-
-
+import EditOrderSkeleton from "../../../components/skeletons/EditOrderSkeleton";
 
 const isOptionDisabled = (status: string, currentStatus: string) => {
-  switch (status) {
-    case "pending":
-      return currentStatus !== "pending";
-    case "processing":
-      return ["shipped", "delivered"].includes(currentStatus);
-    case "shipped":
-      return currentStatus === "pending";
-    case "delivered":
-      return !["shipped"].includes(currentStatus);
-    default:
-      return false;
-  }
+  // Order flow: pending -> processing -> shipped -> delivered
+  const statusOrder = ["pending", "processing", "shipped", "delivered"];
+  const currentIndex = statusOrder.indexOf(currentStatus);
+  const optionIndex = statusOrder.indexOf(status);
+
+  // Can't go backwards or skip steps
+  if (optionIndex < currentIndex) return true;
+  if (optionIndex > currentIndex + 1) return true;
+
+  return false;
 };
 
 export default function EditOrder() {
   const { orderId: id } = useParams<{ orderId: string }>();
-  const { data: order, isLoading, isError } = useGetOrderByIdQuery(id!);
+  const {
+    data: order,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetOrderByIdQuery(id!);
   const [updateOrder, { isLoading: isUpdating }] = useUpdateOrderMutation();
   const [status, setStatus] = useState<string>("");
-  const [deliveryDate, setDeliveryDate] = useState<string>(
-    new Date().toISOString()
-  );
+  const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (order) {
-      setStatus(order?.data?.currentStatus!);
+    if (order?.data) {
+      setStatus(order.data.currentStatus || "pending");
 
-      // Format the delivery date for the input field if it exists
-      if (order?.data?.deliveryDate) {
-        const date = new Date(order.data.deliveryDate);
-        setDeliveryDate(format(date, "yyyy-MM-dd"));
+      if (order.data.deliveryDate) {
+        try {
+          const date = new Date(order.data.deliveryDate);
+          setDeliveryDate(format(date, "yyyy-MM-dd"));
+        } catch (error) {
+          console.error("Invalid date format:", error);
+          setDeliveryDate(format(new Date(), "yyyy-MM-dd"));
+        }
+      } else {
+        setDeliveryDate(format(new Date(), "yyyy-MM-dd"));
       }
     }
   }, [order]);
 
   const handleUpdateStatus = async () => {
+    if (!order?.data || !deliveryDate) return;
+
     const toastId = toast.loading("Updating order...");
     try {
       await updateOrder({
-        id: order?.data?._id!,
-        currentStatus: status as any,
+        id: order.data._id,
+        currentStatus: status as TOrderStatus,
         deliveryDate: deliveryDate && new Date(deliveryDate).toISOString(),
       }).unwrap();
+
       toast.success("Order updated successfully", {
         id: toastId,
         duration: 2000,
@@ -92,87 +104,131 @@ export default function EditOrder() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">Loading order details...</div>
-    );
-  }
-
-  if (isError || !order) {
-    return (
-      <div className="flex justify-center p-8 text-red-500">
-        Error loading order details
-      </div>
-    );
-  }
-
-  // when payment is not processed and delivered update is disabled
+  // Determine if updates are disabled
   const isPaymentPending = order?.data?.payment.transactionStatus !== "success";
   const isDelivered = order?.data?.currentStatus === "delivered";
-
   const isDisabled = isPaymentPending || isDelivered;
 
-  return (
-    <div className="container mx-auto py-6">
-      <h2 className="text-2xl font-bold mb-6">Edit Order</h2>
+  // Check if form has changed from original values
+  const hasChanges =
+    order?.data &&
+    (status !== order.data.currentStatus ||
+      (deliveryDate &&
+        deliveryDate !==
+          format(
+            new Date(order.data.deliveryDate || new Date()),
+            "yyyy-MM-dd"
+          )));
 
+  // Render different content based on loading/error states
+  let content;
+  if (isLoading) {
+    content = <EditOrderSkeleton />;
+  } else if (isError || !order?.data) {
+    content = (
+      <ErrorState
+        title="Failed to Load Order"
+        message="We couldn't retrieve the order details. Please try again."
+        onRetry={() => refetch()}
+      />
+    );
+  } else {
+    const { data: orderData } = order;
+
+    content = (
       <Card>
         <CardHeader>
-          <CardTitle>Order #{order?.data?.orderId}</CardTitle>
-          <CardDescription>
-            Created on {formatDate(order?.data?.createdAt!)} • Status:{" "}
-            <span className="font-medium capitalize">
-              <Badge
-                className={cn(
-                  "capitalize",
-                  badgeColor[order?.data?.currentStatus as OrderStatus]
-                )}
-              >
-                {order?.data?.currentStatus}
-              </Badge>
-            </span>
+          <CardTitle>Order #{orderData.orderId}</CardTitle>
+          <CardDescription className="flex items-center gap-2">
+            Created on {formatDate(orderData.createdAt)} • Status:{" "}
+            <Badge
+              className={cn(
+                "capitalize",
+                badgeColor[orderData.currentStatus as TOrderStatus]
+              )}
+            >
+              {orderData.currentStatus}
+            </Badge>
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* Display alerts for special conditions */}
+          {isPaymentPending && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Payment Pending</AlertTitle>
+              <AlertDescription>
+                Order status cannot be updated until payment is completed.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {isDelivered && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Order Delivered</AlertTitle>
+              <AlertDescription>
+                This order has been marked as delivered and cannot be modified
+                further.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Customer Details */}
             <div>
               <h3 className="text-lg font-medium mb-2">Customer Details</h3>
-              <p>
-                <span className="font-medium">Name:</span>{" "}
-                {order?.data?.user.name}
-              </p>
-              <p>
-                <span className="font-medium">Email:</span> {order?.data?.email}
-              </p>
-              <p>
-                <span className="font-medium">Shipping Address:</span>{" "}
-                {order?.data?.shippingAddress}
-              </p>
+              <div className="space-y-2">
+                <p>
+                  <span className="font-medium">Name:</span>{" "}
+                  {orderData.user.name}
+                </p>
+                <p>
+                  <span className="font-medium">Email:</span> {orderData.email}
+                </p>
+                <p>
+                  <span className="font-medium">Shipping Address:</span>{" "}
+                  {orderData.shippingAddress}
+                </p>
+              </div>
             </div>
 
+            {/* Order Details */}
             <div>
               <h3 className="text-lg font-medium mb-2">Order Details</h3>
-              <p>
-                <span className="font-medium">Car:</span>{" "}
-                {order?.data?.carSnapshot.brand} {order?.data?.carSnapshot.model}
-              </p>
-              <p>
-                <span className="font-medium">Quantity:</span>{" "}
-                {order?.data?.quantity}
-              </p>
-              <p>
-                <span className="font-medium">Total Price:</span> $
-                {order?.data?.totalPrice.toLocaleString()}
-              </p>
-              <p>
-                <span className="font-medium">Payment Status:</span>{" "}
-                {order?.data?.payment.transactionStatus}
-              </p>
-              <p>
-                <span className="font-medium">Expected Delivery:</span>{" "}
-                {formatDate(order?.data?.deliveryDate!)}
-              </p>
+              <div className="space-y-2">
+                <p>
+                  <span className="font-medium">Car:</span>{" "}
+                  {orderData.carSnapshot.brand} {orderData.carSnapshot.model}
+                </p>
+                <p>
+                  <span className="font-medium">Quantity:</span>{" "}
+                  {orderData.quantity}
+                </p>
+                <p>
+                  <span className="font-medium">Total Price:</span> $
+                  {orderData.totalPrice.toLocaleString()}
+                </p>
+                <p>
+                  <span className="font-medium">Payment Status:</span>{" "}
+                  {/* Need to Change this later */}
+                  <Badge
+                    className={
+                      badgeColor[
+                        orderData.payment
+                          .transactionStatus as unknown as TOrderStatus
+                      ]
+                    }
+                  >
+                    {orderData.payment.transactionStatus}
+                  </Badge>
+                </p>
+                <p>
+                  <span className="font-medium">Estimated Delivery:</span>{" "}
+                  {formatDate(orderData.deliveryDate)}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -180,8 +236,12 @@ export default function EditOrder() {
             <h3 className="text-lg font-medium mb-3">Update Order Status</h3>
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-4">
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="w-[240px]" disabled={isDisabled}>
+                <Select
+                  value={status}
+                  onValueChange={setStatus}
+                  disabled={isDisabled}
+                >
+                  <SelectTrigger className="w-[240px]">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -191,7 +251,7 @@ export default function EditOrder() {
                         value={statusOption}
                         disabled={isOptionDisabled(
                           statusOption,
-                          order?.data?.currentStatus!
+                          orderData.currentStatus
                         )}
                       >
                         {statusOption.charAt(0).toUpperCase() +
@@ -208,16 +268,15 @@ export default function EditOrder() {
                 </label>
 
                 <DatePicker
-                  date={new Date(formatDate(deliveryDate))}
+                  date={deliveryDate ? new Date(deliveryDate) : undefined}
                   onSelect={(val) => {
-                    setDeliveryDate(val?.toISOString()!);
+                    if (val) setDeliveryDate(format(val, "yyyy-MM-dd"));
                   }}
-                  isDisabled={isDisabled}
                 />
 
-                <p className="text-xs text-gray-500">
-                  Current expected delivery:{" "}
-                  {formatDate(order?.data?.deliveryDate!)}
+                <p className="text-xs text-muted-foreground">
+                  Current Estimated delivery:{" "}
+                  {formatDate(orderData.deliveryDate)}
                 </p>
               </div>
             </div>
@@ -225,25 +284,23 @@ export default function EditOrder() {
         </CardContent>
 
         <CardFooter className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => navigate(ORDERS_PATH)}
-          >
+          <Button variant="outline" onClick={() => navigate(ORDERS_PATH)}>
             Cancel
           </Button>
           <Button
             onClick={handleUpdateStatus}
-            disabled={
-              isUpdating ||
-              (status === order?.data?.currentStatus &&
-                deliveryDate ===
-                  format(new Date(order?.data?.deliveryDate!), "yyyy-MM-dd"))
-            }
+            disabled={isUpdating || isDisabled || !hasChanges}
           >
             {isUpdating ? "Updating..." : "Update Order"}
           </Button>
         </CardFooter>
       </Card>
-    </div>
+    );
+  }
+
+  return (
+    <DashboardPageWrapper pageHeading="Edit Order">
+      {content}
+    </DashboardPageWrapper>
   );
 }

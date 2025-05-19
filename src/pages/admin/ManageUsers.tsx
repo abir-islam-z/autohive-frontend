@@ -1,3 +1,7 @@
+import { EmptyState } from "@/components/common/EmptyState";
+import DashboardPageWrapper from "@/components/DashboardPageWrapper";
+import ErrorState from "@/components/errors/ErrorState";
+import UsersTableSkeleton from "@/components/skeletons/UsersTableSkeleton";
 import { DataTable } from "@/components/tables/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,17 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn} from "@/lib/utils";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-
-
+import { cn } from "@/lib/utils";
 import {
   useGetAllUsersQuery,
   useUpdateUserMutation,
 } from "@/redux/features/user/userApi";
 import { TUser } from "@/types/user.type";
 import { ColumnDef } from "@tanstack/react-table";
-import { FilterX, Loader2, Search } from "lucide-react";
+import { FilterX, Loader2, RefreshCw, Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -51,7 +53,12 @@ export default function ManageUsers() {
     limit: 10,
   };
 
-  const { data: usersData, isError } = useGetAllUsersQuery(queryParams);
+  const {
+    data: usersData,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetAllUsersQuery(queryParams);
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
   // Update URL params when filters change
@@ -65,10 +72,11 @@ export default function ManageUsers() {
   }, [searchTerm, userStatus, userRole, page, setSearchParams]);
 
   const handleToggleUserStatus = async (userId: string) => {
-    const user = usersData?.data?.find((user: TUser) => user._id === userId);
+    const user = usersData?.data?.find((user) => user._id === userId);
     const toastId = toast.loading(
-      `Updating user status to ${user?.isBlocked ? "Active" : "Blocked"}...`
+      `${user?.isBlocked ? "Unblocking" : "Blocking"} user...`
     );
+
     if (user) {
       try {
         await updateUser({
@@ -76,10 +84,13 @@ export default function ManageUsers() {
           isBlocked: !user.isBlocked,
         }).unwrap();
 
-        toast.success("User status updated successfully", {
-          id: toastId,
-          duration: 2000,
-        });
+        toast.success(
+          `User ${user?.isBlocked ? "unblocked" : "blocked"} successfully`,
+          {
+            id: toastId,
+            duration: 2000,
+          }
+        );
       } catch (error) {
         toast.error(getErrorMessage(error), {
           id: toastId,
@@ -90,10 +101,11 @@ export default function ManageUsers() {
   };
 
   const handleToggleUserRole = async (userId: string) => {
-    const user = usersData?.data?.find((user: TUser) => user._id === userId);
+    const user = usersData?.data?.find((user) => user._id === userId);
     const toastId = toast.loading(
-      `Updating user role to ${user?.role === "admin" ? "User" : "Admin"}...`
+      `Changing role to ${user?.role === "admin" ? "User" : "Admin"}...`
     );
+
     if (user) {
       try {
         const newRole = user.role === "admin" ? "user" : "admin";
@@ -102,7 +114,7 @@ export default function ManageUsers() {
           role: newRole,
         }).unwrap();
 
-        toast.success("User role updated successfully", {
+        toast.success(`User is now ${newRole}`, {
           id: toastId,
           duration: 2000,
         });
@@ -111,7 +123,6 @@ export default function ManageUsers() {
           id: toastId,
           duration: 2000,
         });
-        console.error("Failed to update user role:", error);
       }
     }
   };
@@ -200,17 +211,9 @@ export default function ManageUsers() {
     },
   ];
 
-  if (isError)
-    return (
-      <div className="p-8">Error loading users. Please try again later.</div>
-    );
-
-  return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Manage Users</h2>
-      </div>
-
+  // The filters section - extracted for better readability
+  const filtersSection = (
+    <div className="space-y-6 mb-3">
       {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -274,24 +277,72 @@ export default function ManageUsers() {
         <FilterX className="h-4 w-4" />
         Reset Filters
       </Button>
-
-      {/* Results count */}
-      <div className="text-sm text-muted-foreground mb-2">
-        Found {usersData?.meta?.total || 0} user
-        {usersData?.meta?.total !== 1 ? "s" : ""}
-      </div>
-
-      <DataTable
-        columns={columns}
-        data={usersData?.data || []}
-        serverPagination={{
-          pageCount: usersData?.meta?.totalPage || 1,
-          currentPage: page,
-        }}
-        onPaginationChange={(pagination) => {
-          setPage(pagination.pageIndex + 1);
-        }}
-      />
     </div>
+  );
+
+  // Determine content based on loading/error state
+  let content;
+
+  if (isLoading) {
+    content = <UsersTableSkeleton />;
+  } else if (isError) {
+    content = (
+      <ErrorState
+        title="Failed to Load Users"
+        message="We couldn't retrieve the user list. Please try again."
+        onRetry={() => refetch()}
+      />
+    );
+  } else if (usersData?.data && usersData.data.length > 0) {
+    content = (
+      <>
+        {filtersSection}
+
+        {/* Results count */}
+        <div className="text-sm text-muted-foreground mb-2">
+          Found {usersData?.meta?.total || 0} user
+          {usersData?.meta?.total !== 1 ? "s" : ""}
+        </div>
+
+        {/* Users table */}
+        <DataTable
+          columns={columns}
+          data={usersData.data}
+          serverPagination={{
+            pageCount: usersData?.meta?.totalPage || 1,
+            currentPage: page,
+          }}
+          onPaginationChange={(pagination) => {
+            setPage(pagination.pageIndex + 1);
+          }}
+        />
+      </>
+    );
+  } else {
+    // Empty state
+    content = (
+      <>
+        {filtersSection}
+
+        <EmptyState
+          icon={Users}
+          title="No Users Found"
+          description={
+            searchTerm || userStatus !== "All" || userRole !== "All"
+              ? "Try adjusting your search or filter criteria."
+              : "No users have been registered yet."
+          }
+          actionLabel="Refresh"
+          actionIcon={RefreshCw}
+          onAction={() => refetch()}
+        />
+      </>
+    );
+  }
+
+  return (
+    <DashboardPageWrapper pageHeading="Manage Users">
+      {content}
+    </DashboardPageWrapper>
   );
 }

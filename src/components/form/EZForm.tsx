@@ -1,7 +1,7 @@
 "use client";
 
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { cn} from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 import {
   FieldValues,
@@ -32,7 +32,9 @@ export const EZForm = <T extends FieldValues>({
   resolver,
   className,
 }: TFormProps<T>) => {
-  const formConfig: UseFormProps<T> = {};
+  const formConfig: UseFormProps<T> = {
+    mode: "onChange",
+  };
 
   if (defaultValues) {
     formConfig.defaultValues = defaultValues;

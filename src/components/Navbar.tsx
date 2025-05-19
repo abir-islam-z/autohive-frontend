@@ -1,10 +1,10 @@
 "use client";
 
-import { cn, getGravatarUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { logout } from "@/redux/features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { RootState } from "@/redux/store";
-import { LogOut, Menu, User } from "lucide-react";
+import { LogOut, Menu, TerminalSquare, User } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,8 +14,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -89,9 +87,10 @@ export default function Navbar() {
     <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-24">
-          <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="text-2xl font-bold">
-              <img src="/logo.png" alt="AutoHive" className="h-20 w-auto" />
+          {/* Site Title */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center gap-2">
+              <img className="h-12" src="/logo.png" alt="AutoHive" />
             </Link>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -120,24 +119,18 @@ export default function Navbar() {
                     variant="ghost"
                     className="relative h-10 w-10 rounded-full"
                   >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={getGravatarUrl(user?.email as string)}
-                        alt={user?.name as string}
-                      />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user?.name ? user.name.charAt(0) : "U"}
-                      </AvatarFallback>
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarFallback className="rounded-lg">U</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard/profile" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Link to="/dashboard" className="flex items-center">
+                      <TerminalSquare className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem

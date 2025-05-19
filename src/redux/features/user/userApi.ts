@@ -25,12 +25,12 @@ const userApi = baseApi.injectEndpoints({
           url: "/users",
           method: "GET",
           params,
-          transformResponse: (response: TResponseRedux<TUser[]>) => {
-            return {
-              data: response.data,
-              meta: response.meta,
-            };
-          },
+        };
+      },
+      transformResponse: (response: TResponseRedux<TUser[]>) => {
+        return {
+          data: response.data,
+          meta: response.meta,
         };
       },
       providesTags: ["User"],

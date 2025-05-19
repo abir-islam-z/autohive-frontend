@@ -12,9 +12,16 @@ type TTextAreaProps = {
   name: string;
   label?: string;
   disabled?: boolean;
+  placeholder?: string;
 };
 
-const EZTextArea = ({ name, label, row = 10, disabled }: TTextAreaProps) => {
+const EZTextArea = ({
+  name,
+  label,
+  row = 10,
+  disabled,
+  placeholder,
+}: TTextAreaProps) => {
   return (
     <FormField
       name={name}
@@ -29,6 +36,7 @@ const EZTextArea = ({ name, label, row = 10, disabled }: TTextAreaProps) => {
               className="mt-2"
               disabled={disabled}
               rows={row}
+              placeholder={placeholder}
             />
           </FormControl>
           <FormMessage />

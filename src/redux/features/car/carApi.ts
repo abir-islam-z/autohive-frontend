@@ -1,20 +1,8 @@
 import { baseApi } from "@/redux/api";
 import { TCreateCar } from "@/schema/add-car.schema";
+import { TBrandsModels, TCar } from "@/types/car.type";
 import { TResponse, TResponseRedux } from "@/types/global";
-
-type TCar = {
-  readonly _id: string;
-  brand: string;
-  model: string;
-  year: number;
-  price: number;
-  category: string;
-  description: string;
-  currency: string;
-  quantity: number;
-  inStock: boolean;
-  image: string;
-};
+import { serialize } from "object-to-formdata";
 
 const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -55,7 +43,7 @@ const carApi = baseApi.injectEndpoints({
       {
         query: (car) => {
           // file upload
-          const formData = new FormData();
+          /* const formData = new FormData();
           formData.append("brand", car.brand);
           formData.append("model", car.model);
           formData.append("year", String(car.year));
@@ -64,7 +52,34 @@ const carApi = baseApi.injectEndpoints({
           formData.append("description", car.description);
           formData.append("quantity", String(car.quantity));
           formData.append("currency", String(car.currency));
-          formData.append("image", car.image);
+          if (Array.isArray(car.images)) {
+            car.images.forEach((file) => {
+              formData.append("images", file);
+            });
+          } else {
+            // Fallback for when it's a single file
+            formData.append("images", car.images as File);
+          }
+          formData.append("transmission", car.transmission);
+          formData.append("fuelType", car.fuelType);
+          formData.append("driveType", car.driveType);
+          formData.append("mileage", String(car.mileage));
+          formData.append("horsepower", String(car.horsepower));
+          formData.append("engine", car.engine);
+          formData.append("color", car.color); */
+
+          // Extract images from body
+          const { images, ...restBody } = car;
+
+          // Create FormData and serialize the non-file fields
+          const formData = serialize(restBody, { indices: false });
+
+          // Manually add images with the exact key name you want
+          if (images && Array.isArray(images)) {
+            images.forEach((image) => {
+              formData.append("images", image);
+            });
+          }
 
           return {
             url: "/cars",
@@ -75,11 +90,25 @@ const carApi = baseApi.injectEndpoints({
       }
     ),
     updateCar: builder.mutation({
-      query: ({ id, ...body }) => ({
-        url: `/cars/${id}`,
-        method: "PATCH",
-        body,
-      }),
+      query: ({ id, ...body }) => {
+        // Extract images from body
+        const { images, ...restBody } = body;
+
+        // Create FormData and serialize the non-file fields
+        const formData = serialize(restBody, { indices: false });
+
+        // Manually add images with the exact key name you want
+        if (images && Array.isArray(images)) {
+          images.forEach((image) => {
+            formData.append("images", image);
+          });
+        }
+        return {
+          url: `/cars/${id}`,
+          method: "PATCH",
+          body: formData,
+        };
+      },
       invalidatesTags: ["Car"],
     }),
     deleteCar: builder.mutation({
@@ -89,12 +118,16 @@ const carApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Car"],
     }),
+    getBrands: builder.query<TResponseRedux<TBrandsModels>, void>({
+      query: () => ({ url: "/cars/brands" }),
+    }),
   }),
 });
 
 export const {
   useGetCarsQuery,
   useGetCarByIdQuery,
+  useGetBrandsQuery,
   useCreateCarMutation,
   useUpdateCarMutation,
   useDeleteCarMutation,

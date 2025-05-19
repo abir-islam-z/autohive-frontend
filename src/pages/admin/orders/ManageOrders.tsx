@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { EmptyState } from "@/components/common/EmptyState";
+import DashboardPageWrapper from "@/components/DashboardPageWrapper";
+import ErrorState from "@/components/errors/ErrorState";
 import { DataTable } from "@/components/tables/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { EditButton } from "@/components/ui/global-buttons";
@@ -14,11 +17,13 @@ import {
 import { badgeColor, cn, formatDate } from "@/lib/utils";
 import { useGetOrdersQuery } from "@/redux/features/order/orderApi";
 import { ORDERS_PATH } from "@/routes/admin.route";
-import { IOrder, OrderStatus } from "@/types/order.type";
+import { IOrder, TOrderStatus } from "@/types/order.type";
 import { ColumnDef } from "@tanstack/react-table";
+import { Package, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDebounce } from "use-debounce";
+import OrdersTableSkeleton from "../../../components/skeletons/OrdersTableLoadingSkeleton";
 
 // Convert simple strings to objects with value and label
 const STATUS_OPTIONS = [
@@ -27,7 +32,6 @@ const STATUS_OPTIONS = [
   { value: "processing", label: "Processing" },
   { value: "shipped", label: "Shipped" },
   { value: "delivered", label: "Delivered" },
-  { value: "cancelled", label: "Cancelled" },
 ];
 
 // Create columns definition for Tanstack Table matching your IOrder interface
@@ -57,7 +61,7 @@ const createColumns = (
     header: "Status",
     cell: ({ row }) => {
       const status = (row.getValue<string>("currentStatus") ||
-        "pending") as OrderStatus;
+        "pending") as TOrderStatus;
       return (
         <Badge
           className={cn("capitalize pointer-events-none", badgeColor[status])}
@@ -104,6 +108,7 @@ export default function ManageOrders() {
     data: ordersData,
     isLoading,
     isError,
+    refetch,
   } = useGetOrdersQuery({
     search: searchValue,
     status: statusFilter !== "All" ? statusFilter : undefined,
@@ -127,79 +132,128 @@ export default function ManageOrders() {
   const handleEditOrder = (orderId: string) => {
     navigate(ORDERS_PATH + `/${orderId}`);
   };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <h2 className="text-2xl font-bold mb-6">Manage Orders</h2>
-        <div>Loading...</div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <div>Error loading orders. Please try again later.</div>
-      </div>
-    );
-  }
-
-  // Make sure to use IOrder type here
   const columns = createColumns(handleEditOrder);
 
+  let content = null;
+
+  if (isLoading) {
+    content = <OrdersTableSkeleton />;
+  } else if (isError) {
+    content = (
+      <ErrorState message="Failed to load orders" onRetry={() => refetch()} />
+    );
+  } else if (ordersData?.data && ordersData?.data?.length > 0) {
+    content = (
+      <>
+        {/* Existing search, filter and data table components */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <Label htmlFor="search">Search</Label>
+            <Input
+              id="search"
+              placeholder="Search orders..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
+          <div className="w-full md:w-48">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <DataTable
+          data={ordersData.data}
+          columns={columns}
+          serverPagination={{
+            pageCount: ordersData?.meta?.totalPage || 1,
+            currentPage: page,
+          }}
+          onPaginationChange={(newPagination) => {
+            setPage(newPagination.pageIndex + 1);
+          }}
+        />
+      </>
+    );
+  } else {
+    content = (
+      <>
+        {/* Keep the search and filter components to allow users to change their search criteria */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <Label htmlFor="search">Search</Label>
+            <Input
+              id="search"
+              placeholder="Search orders..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
+          <div className="w-full md:w-48">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Empty state component */}
+        <EmptyState
+          icon={Package}
+          title="No Orders Found"
+          description={
+            searchTerm || statusFilter !== "All"
+              ? "Try adjusting your search or filter criteria."
+              : "No orders have been placed yet."
+          }
+          actionLabel="Refresh"
+          actionIcon={RefreshCw}
+          onAction={() => refetch()}
+        />
+      </>
+    );
+  }
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h2 className="text-2xl font-bold mb-6">Manage Orders</h2>
-
-      {/* Filter Controls */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <Label htmlFor="search">Search</Label>
-          <Input
-            id="search"
-            placeholder="Search orders..."
-            value={searchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full"
-          />
-        </div>
-
-        <div className="w-full md:w-48">
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={statusFilter}
-            onValueChange={(value) => {
-              setStatusFilter(value);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger id="status">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Data Table */}
-      <DataTable
-        data={ordersData?.data || []}
-        columns={columns}
-        serverPagination={{
-          pageCount: ordersData?.meta?.totalPage || 1,
-          currentPage: page,
-        }}
-        onPaginationChange={(newPagination) => {
-          setPage(newPagination.pageIndex + 1);
-        }}
-      />
-    </div>
+    <DashboardPageWrapper pageHeading="Manage Orders">
+      {content}
+    </DashboardPageWrapper>
   );
 }

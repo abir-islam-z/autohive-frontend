@@ -1,6 +1,6 @@
 import ChangePassword from "@/pages/user/ChangePassword";
 import ManageProfile from "@/pages/user/ManageProfile";
-import ViewOrders from "@/pages/user/orders/ViewOrders";
+import ViewOrders from "@/pages/user/orders/TrackOrders";
 import { SidebarLink } from "@/types/sidebar.type";
 import { FileText, Key, User } from "lucide-react";
 

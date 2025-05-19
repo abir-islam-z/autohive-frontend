@@ -2,19 +2,9 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { IOrder } from "@/types/order.type";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
-import { products, type CarProduct } from "../data/products";
 
 // Mock function to simulate SurjoPay integration
 const initiateSurjoPayPayment = async (orderDetails: any) => {
@@ -34,33 +24,11 @@ export default function Checkout() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [cartItems, setCartItems] = useState<
-    (CarProduct & { quantity: number })[]
-  >([]);
+  const [cartItems, setCartItems] = useState<IOrder[]>([]);
 
-  useEffect(() => {
-    // In a real app, you would fetch the cart items from a state management solution or API
-    // For this example, we'll use mock data
-    setCartItems([
-      { ...products[0], quantity: 1 },
-      { ...products[1], quantity: 2 },
-    ]);
-  }, []);
+  const totalPrice = 0;
 
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
-
-  const handleQuantityChange = (productId: number, newQuantity: number) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId
-          ? { ...item, quantity: Math.min(newQuantity, item.quantity) }
-          : item
-      )
-    );
-  };
+  const handleQuantityChange = (productId: number, newQuantity: number) => {};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +65,8 @@ export default function Checkout() {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Checkout</h2>
+      Checkout page content goes here
+      {/* <h2 className="text-2xl font-bold mb-6">Checkout</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
           <h3 className="text-xl font-semibold mb-2">Order Summary</h3>
@@ -177,7 +146,7 @@ export default function Checkout() {
         <Button type="submit" className="w-full">
           Order Now
         </Button>
-      </form>
+      </form> */}
     </div>
   );
 }
